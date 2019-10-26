@@ -1,0 +1,55 @@
+{
+  "@context": {
+    "ldp": "http://www.w3.org/ns/ldp#",
+    "vcard": "http://www.w3.org/2006/vcard/ns#",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "n1": "http://www.w3.org/ns/auth/acl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "schem": "https://schema.org/",
+    "solid": "http://www.w3.org/ns/solid/terms#",
+    "sp": "http://www.w3.org/ns/pim/space#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@graph": [
+    {
+      "@id": "/profile/card#me",
+      "vcard:fn": "John Doe",
+      "vcard:organization-name": "Testers",
+      "vcard:role": "Quality Assurance",
+      "foaf:name": "John Doe",
+      "@type": [
+        "schem:Person",
+        "foaf:Person"
+      ],
+      "ldp:inbox": {
+        "@id": "/inbox/"
+      },
+      "solid:account": {
+        "@id": "/"
+      },
+      "solid:privateTypeIndex": {
+        "@id": "/settings/privateTypeIndex.ttl"
+      },
+      "solid:publicTypeIndex": {
+        "@id": "/settings/publicTypeIndex.ttl"
+      },
+      "sp:preferencesFile": {
+        "@id": "/settings/prefs.ttl"
+      },
+      "sp:storage": {
+        "@id": "/"
+      }
+    },
+    {
+      "@id": "/profile/card",
+      "@type": "foaf:PersonalProfileDocument",
+      "foaf:maker": {
+        "@id": "/profile/card#me"
+      },
+      "foaf:primaryTopic": {
+        "@id": "/profile/card#me"
+      }
+    }
+  ]
+}
