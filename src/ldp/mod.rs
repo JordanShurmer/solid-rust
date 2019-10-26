@@ -1,6 +1,5 @@
 use hyper::{Body, Method, Request, Response, StatusCode};
 use log::{debug, error, info, warn};
-use std::convert::TryFrom;
 use std::path::Path;
 use tokio::fs::File;
 use tokio::prelude::*;
@@ -46,7 +45,7 @@ impl Resource {
     }
 }
 
-pub async fn handle(request: Request<Body>) -> Response<Body> {
+pub async fn handle(request: Request<Body>) -> Result<Response<Body>, Box<dyn std::error::Error>> {
     debug!(
         "ldp handling request {} {}",
         request.method(),
@@ -71,45 +70,35 @@ pub async fn handle(request: Request<Body>) -> Response<Body> {
 
             match Resource::from(request).await {
 
-                Ok(mut resource) => match resource.to_body().await {
-                    Ok(body) => rdf_response(Some("text/turtle"))
+                Ok(mut resource) => Ok(rdf_response(Some("text/turtle"))
                         .status(StatusCode::OK)
-                        .body(body)
-                        .unwrap(),
-
-                    Err(e) => {
-                        error!("Error reading file, {:?}", e);
-                        Response::builder()
-                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .body(Body::empty())
-                            .unwrap()
-                    },
-                },
+                        .body(resource.to_body().await?)
+                        .unwrap()),
 
                 Err(e) => {
                     debug!("error {}", e);
-                    Response::builder()
+                    Ok(Response::builder()
                         .status(StatusCode::NOT_FOUND)
                         .body(NOT_FOUND_BODY.into())
-                        .unwrap()
+                        .unwrap())
                 }
             }
         }
 
-        &Method::HEAD => rdf_response(Some("text/turtle"))
+        &Method::HEAD => Ok(rdf_response(Some("text/turtle"))
             .body(Body::empty())
-            .unwrap(),
+            .unwrap()),
 
-        &Method::OPTIONS => rdf_response(None).body(Body::empty()).unwrap(),
+        &Method::OPTIONS => Ok(rdf_response(None).body(Body::empty()).unwrap()),
 
         // *** ***
         // Unimplemented requests
         // *** ***
-        _ => Response::builder()
+        _ => Ok(Response::builder()
             .status(StatusCode::METHOD_NOT_ALLOWED)
             .header("Accept", "GET")
             .body(Body::empty())
-            .unwrap(),
+            .unwrap()),
     }
 }
 
