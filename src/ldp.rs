@@ -1,45 +1,70 @@
-use futures::Future;
 use hyper::{Body, Method, Request, Response, StatusCode};
-use log::{debug, error, warn};
+use tokio::fs::File;
+use tokio::prelude::*;
+use log::{debug, error, info, warn};
+use std::path::Path;
 
 static NOT_FOUND_BODY: &[u8] = b"NOT FOUND";
 
-pub fn static_server(req: Request<Body>) -> super::our::ResponseFuture {
-    // TODO: Update to async/.await when it's ready
-    let file_path = req.uri().path().trim_start_matches('/').to_string();
-    debug!("ldp handling requeset {} {}", req.method(), req.uri().path());
+pub async fn handle(request: Request<Body>) -> Response<Body> {
+    let file_path = request.uri().path().trim_start_matches('/').to_string();
+    debug!(
+        "ldp handling requeset {} {}",
+        request.method(),
+        request.uri().path()
+    );
     debug!("file path: {}", file_path);
-    match req.method() {
-        &Method::GET => Box::new(
-            tokio_fs::file::File::open(file_path)
-                .and_then(|file| {
-                    let buf: Vec<u8> = Vec::new();
-                    // TODO: stream the file instead
-                    tokio_io::io::read_to_end(file, buf)
-                        .and_then(|item| Ok(Response::new(item.1.into())))
-                        .or_else(|err| {
-                            error!("error reading file {}", err);
-                            Ok(Response::builder()
-                                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                                .body(Body::empty())
-                                .unwrap())
-                        })
-                })
-                .or_else(|err| {
-                    warn!("no file found: {}", err);
-                    Ok(Response::builder()
-                        .status(StatusCode::NOT_FOUND)
-                        .body(NOT_FOUND_BODY.into())
-                        .unwrap())
-                }),
-        ),
-        _ => Box::new(
-            futures::future::lazy(|| {
-            Ok(Response::builder()
-                .status(StatusCode::NOT_IMPLEMENTED)
+
+    // Handle each method properly
+    match request.method() {
+        // *** ***
+        // GET requests
+        // *** ***
+        &Method::GET => {
+            let path = Path::new(&file_path);
+
+            match File::open(path).await {
+
+                Ok(mut file) => {
+                    let mut contents = vec![];
+                    file.read_to_end(&mut contents).await.unwrap();
+                    Response::builder()
+                        .status(StatusCode::OK)
+                        .header("Content-Type", "text/turtle")
+                        .header("Link", "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"")
+                        .header("Accept", "GET,OPTIONS")
+                        .body(Body::from(contents))
+                        .unwrap()
+
+                },
+
+                Err(e) => {
+                    error!("error {}", e);
+                    Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(NOT_FOUND_BODY.into())
+                    .unwrap()
+                }
+            }
+        },
+
+        // *** ***
+        // Unimplemented requests
+        // *** ***
+        _ => Response::builder()
+                .status(StatusCode::METHOD_NOT_ALLOWED)
+                .header("Accept", "GET")
                 .body(Body::empty())
-                .unwrap())
-            })
-        ),
+                .unwrap()
     }
+}
+
+// *** *** ***
+// setup the response with the
+// RDF Resource related info
+// *** *** ***
+fn rdf_response<'a>(builder: &'a mut http::response::Builder) -> &'a mut http::response::Builder {
+    builder
+        .header("Link", "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"")
+        .header("Accept", "GET,OPTIONS")
 }

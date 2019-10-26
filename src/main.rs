@@ -1,11 +1,12 @@
 mod ldp;
-mod our;
+// mod our;
 
-use futures::Future;
+use hyper::server::conn::AddrStream;
 use hyper::service::service_fn;
-use hyper::{Body, Request, Response, Server, StatusCode};
-use log::{debug, error, info, warn};
-use std::io;
+use hyper::service::make_service_fn;
+use hyper::{Body, Request, Server};
+use hyper::error::Error;
+use log::{debug, error, info};
 
 
 // CLI Option Parsing Stuff
@@ -14,34 +15,42 @@ use structopt::StructOpt;
 #[structopt(name = "solid-rust")]
 struct CliOpts {
     #[structopt(short, long, default_value = "7070")]
-    port: u32,
+    port: u16,
 }
 
 // *** *** ***
 // ENTRY POINT
 // *** *** ***
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     pretty_env_logger::init();
 
     let cli_opts = CliOpts::from_args();
     debug!("{:?}", cli_opts);
 
     // localhost, on the given port
-    let addr = format!("127.0.0.1:{}", cli_opts.port).parse().unwrap();
+    let addr = ([127, 0, 0, 1], cli_opts.port).into();
 
     // Setup the hyper server
     // everything is handled by
     // our one function for now
     let server = Server::bind(&addr)
-        .serve(|| service_fn(static_server))
-        .map_err(|e| error!("server error: {}", e));
+        .serve(make_service_fn(|_: &AddrStream| {
+            // return a service_function that handles a request
+            async move {
+                Ok::<_, Error>(service_fn(move |request: Request<Body>| async {
+                    Ok::<_, Error>(
+                        ldp::handle(request).await
+                    )
+                }))
+            }
+        }));
 
     info!("Listening on http://{}", addr);
 
-    hyper::rt::run(server);
-}
+    if let Err(e) = server.await {
+        error!("server error: {}", e);
+    } 
 
-// Handle a request by resolving the url path from the current directly
-fn static_server(req: Request<Body>) -> our::ResponseFuture {
-    ldp::static_server(req)
+    Ok(())
 }
