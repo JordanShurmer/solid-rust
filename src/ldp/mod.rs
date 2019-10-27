@@ -24,6 +24,7 @@ pub async fn handle(request: Request<Body>) -> Result<Response<Body>, Box<dyn st
             } else {
                 Ok(rdf_response(resource.content_type())
                     .status(StatusCode::OK)
+                    .header("ETag", resource.etag().await)
                     .body(resource.to_body().await?)
                     .unwrap())
             }
@@ -40,6 +41,7 @@ pub async fn handle(request: Request<Body>) -> Result<Response<Body>, Box<dyn st
             } else {
                 Ok(rdf_response(resource.content_type())
                     .status(StatusCode::OK)
+                    .header("ETag", resource.etag().await)
                     .body(Body::empty())
                     .unwrap())
             }

@@ -1,7 +1,9 @@
 use hyper::{Body, Request};
 use log::debug;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::path::PathBuf;
-use tokio::fs::File;
+use tokio::fs::{metadata, File};
 use tokio::prelude::*;
 
 #[derive(Debug)]
@@ -64,7 +66,7 @@ impl Resource {
                         Some("ttl") => return Some("text/turtle"),
                         Some("jsonld") => return Some("application/ld+json"),
                         Some(_) => return Some("binary"), //octet stream?
-                        None => return None, //octet stream?
+                        None => return None,              //octet stream?
                     }
                 }
 
@@ -72,6 +74,23 @@ impl Resource {
             }
 
             Self::NonRDF(_) => None, //octet stream?
+        }
+    }
+
+    pub async fn etag(&self) -> String {
+        match self {
+            Self::NotFound => "".to_owned(),
+
+            Self::NonRDF(file_path) | Self::RDFSource(file_path) => {
+                if let Ok(metadata) = metadata(file_path).await {
+                    if let Ok(modified) = metadata.modified() {
+                        let mut h = DefaultHasher::new();
+                        modified.hash(&mut h);
+                        return h.finish().to_string();
+                    }
+                }
+                "".to_owned()
+            }
         }
     }
 }
