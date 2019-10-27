@@ -12,24 +12,19 @@ pub enum Resource {
 }
 
 impl Resource {
-
-    pub fn from(request: & Request<Body>) -> Self {
+    pub fn from(request: &Request<Body>) -> Self {
         let file_path = PathBuf::from(request.uri().path().trim_start_matches('/'));
-        // Try to open the file. 
+        // Try to open the file.
         if file_path.is_file() {
-
             debug!("found a file {:?}", file_path);
             if let Some(extension) = file_path.extension() {
                 match extension.to_str() {
                     Some("ttl") => return Self::RDFSource(file_path),
-    
                     Some("jsonld") => return Self::RDFSource(file_path),
-    
                     _ => return Self::NonRDF(file_path),
                 }
             }
             return Self::NonRDF(file_path);
-
         } else {
             debug!("not a file {:?}", file_path);
             Self::NotFound
@@ -39,14 +34,14 @@ impl Resource {
     pub async fn to_body(&mut self) -> Result<Body, std::io::Error> {
         match self {
             Self::RDFSource(path) => {
-                let mut file =  File::open(path).await?;
+                let mut file = File::open(path).await?;
                 let mut contents = vec![];
                 file.read_to_end(&mut contents).await?;
                 Ok(Body::from(contents))
             }
 
             Self::NonRDF(path) => {
-                let mut file =  File::open(path).await?;
+                let mut file = File::open(path).await?;
                 let mut contents = vec![];
                 file.read_to_end(&mut contents).await?;
                 Ok(Body::from(contents))
@@ -60,10 +55,23 @@ impl Resource {
     }
 
     pub fn content_type(&self) -> Option<&str> {
-        if let Self::NotFound = self {
-            None // todo: application/octet-stream or whatever
-        } else {
-            Some("text/turle")
+        match self {
+            Self::NotFound => None,
+
+            Self::RDFSource(file_path) => {
+                if let Some(extension) = file_path.extension() {
+                    match extension.to_str() {
+                        Some("ttl") => return Some("text/turtle"),
+                        Some("jsonld") => return Some("application/ld+json"),
+                        Some(_) => return Some("binary"), //octet stream?
+                        None => return None, //octet stream?
+                    }
+                }
+
+                None //octet stream?
+            }
+
+            Self::NonRDF(_) => None, //octet stream?
         }
     }
 }
