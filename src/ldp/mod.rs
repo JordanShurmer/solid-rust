@@ -1,49 +1,8 @@
+mod resource;
+
 use hyper::{Body, Method, Request, Response, StatusCode};
-use log::{debug, error, info, warn};
-use std::path::Path;
-use tokio::fs::File;
-use tokio::prelude::*;
-
-static NOT_FOUND_BODY: &[u8] = b"NOT FOUND";
-
-#[derive(Debug)]
-enum Resource {
-    RDFSource(File),
-    NonRDF(File),
-}
-
-impl Resource {
-    async fn from(request: Request<Body>) -> Result<Self, std::io::Error> {
-        let file_path = Path::new(request.uri().path().trim_start_matches('/'));
-        if let Some(extension) = file_path.extension() {
-            match extension.to_str() {
-                Some("ttl") => return Ok(Self::RDFSource(File::open(file_path).await?)),
-
-                Some("jsonld") => return Ok(Self::RDFSource(File::open(file_path).await?)),
-
-                _ => return Ok(Self::NonRDF(File::open(file_path).await?)),
-            }
-        }
-
-        return Ok(Self::NonRDF(File::open(file_path).await?));
-    }
-
-    async fn to_body(&mut self) -> Result<Body, std::io::Error> {
-        match self {
-            Self::RDFSource(file) => {
-                let mut contents = vec![];
-                file.read_to_end(&mut contents).await?;
-                Ok(Body::from(contents))
-            }
-
-            Self::NonRDF(file) => {
-                let mut contents = vec![];
-                file.read_to_end(&mut contents).await?;
-                Ok(Body::from(contents))
-            }
-        }
-    }
-}
+use log::debug;
+use resource::Resource;
 
 pub async fn handle(request: Request<Body>) -> Result<Response<Body>, Box<dyn std::error::Error>> {
     debug!(
@@ -52,48 +11,42 @@ pub async fn handle(request: Request<Body>) -> Result<Response<Body>, Box<dyn st
         request.uri().path()
     );
 
-    // Handle each method properly
     match request.method() {
-        // *** ***
-        // GET requests
-        // *** ***
         &Method::GET => {
-            let file_path = request.uri().path().trim_start_matches('/').to_string();
-            let path = Path::new(&file_path);
-            debug!("file path: {:?}", path);
+            let mut resource = Resource::from(&request);
 
-            // if non-rs: read and return file with headers
-            // if RDFSource:
-            //   inspect Accept headers
-            //   adapt to the right type
-            //   return adapted contents with headers
-
-            match Resource::from(request).await {
-
-                Ok(mut resource) => Ok(rdf_response(Some("text/turtle"))
-                        .status(StatusCode::OK)
-                        .body(resource.to_body().await?)
-                        .unwrap()),
-
-                Err(e) => {
-                    debug!("error {}", e);
-                    Ok(Response::builder()
-                        .status(StatusCode::NOT_FOUND)
-                        .body(NOT_FOUND_BODY.into())
-                        .unwrap())
-                }
+            if let Resource::NotFound = resource {
+                let not_found: &[u8] = b"NOT FOUND";
+                Ok(Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(not_found.into())
+                    .unwrap())
+            } else {
+                Ok(rdf_response(resource.content_type())
+                    .status(StatusCode::OK)
+                    .body(resource.to_body().await?)
+                    .unwrap())
             }
         }
 
-        &Method::HEAD => Ok(rdf_response(Some("text/turtle"))
-            .body(Body::empty())
-            .unwrap()),
+        &Method::HEAD => {
+            let resource = Resource::from(&request);
+
+            if let Resource::NotFound = resource {
+                Ok(Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(Body::empty())
+                    .unwrap())
+            } else {
+                Ok(rdf_response(resource.content_type())
+                    .status(StatusCode::OK)
+                    .body(Body::empty())
+                    .unwrap())
+            }
+        }
 
         &Method::OPTIONS => Ok(rdf_response(None).body(Body::empty()).unwrap()),
 
-        // *** ***
-        // Unimplemented requests
-        // *** ***
         _ => Ok(Response::builder()
             .status(StatusCode::METHOD_NOT_ALLOWED)
             .header("Accept", "GET")
