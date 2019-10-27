@@ -69,7 +69,7 @@ fn rdf_response(content_type: Option<&str>) -> http::response::Builder {
 
     builder
         .header("Link", "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"")
-        .header("Accept", "GET,OPTIONS");
+        .header("Allow", "GET,HEAD,OPTIONS");
 
     return builder;
 }
