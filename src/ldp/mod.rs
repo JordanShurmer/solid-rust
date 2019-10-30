@@ -4,7 +4,7 @@ use hyper::{Body, Method, Request, Response, StatusCode};
 use log::debug;
 use resource::Resource;
 
-pub async fn handle(request: Request<Body>) -> Result<Response<Body>, Box<dyn std::error::Error>> {
+pub async fn handle(request: Request<Body>) -> crate::our::ServerResult {
     debug!(
         "ldp handling request {} {}",
         request.method(),

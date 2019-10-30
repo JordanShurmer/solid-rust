@@ -1,5 +1,5 @@
 mod ldp;
-// mod our;
+mod our;
 
 use hyper::error::Error;
 use hyper::server::conn::AddrStream;
@@ -30,16 +30,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // localhost, on the given port
     let addr = ([127, 0, 0, 1], cli_opts.port).into();
 
-    // Setup the hyper server
-    // everything is handled by
-    // our one function for now
+    // Setup the hyper server everything is handled by our one function for now
     let server = Server::bind(&addr).serve(make_service_fn(|_: &AddrStream| {
         // return a service_function that handles a request
         async move {
             Ok::<_, Error>(service_fn(move |request: Request<Body>| {
                 async {
                     // call the handler, we handle errors with a 500 response
-                    match ldp::handle(request).await {
+                    match dispatch(request).await {
                         Ok(response) => Ok::<_, Error>(response),
 
                         Err(e) => {
@@ -64,4 +62,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+// Take a request, and dispatch it to the right server
+async fn dispatch(request: Request<Body>) -> our::ServerResult {
+    // LDP server is the only one right now
+    ldp::handle(request).await
 }
