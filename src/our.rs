@@ -5,7 +5,6 @@
 // can be acceessed with
 //   mod our;
 //   our::Whatever
-use hyper::{Body, Response};
 
 // Some short hand for dyn+send box
-pub type ServerResult = Result<Response<Body>, Box<dyn std::error::Error>>;
+pub type ServerResult = Result<hyper::Response<hyper::Body>, Box<dyn std::error::Error>>;

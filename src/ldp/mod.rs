@@ -18,6 +18,7 @@ pub async fn handle(request: Request<Body>) -> crate::our::ServerResult {
                 Ok(mut resource) => {
                     Ok(rdf_response(resource.content_type())
                         .status(StatusCode::OK)
+                        .header("Last-Modified", resource.last_modified().await)
                         .header("ETag", resource.etag().await)
                         .body(resource.to_body().await?)
                         .unwrap())
@@ -42,6 +43,7 @@ pub async fn handle(request: Request<Body>) -> crate::our::ServerResult {
                 Ok(resource) => {
                     Ok(rdf_response(resource.content_type())
                         .status(StatusCode::OK)
+                        .header("Last-Modified", resource.last_modified().await)
                         .header("ETag", resource.etag().await)
                         .body(Body::empty())
                         .unwrap())

@@ -1,7 +1,7 @@
-use hyper::{Body, Request};
-use log::debug;
 use core::convert::TryFrom;
 use core::hash::{Hash, Hasher};
+use hyper::{Body, Request};
+use log::debug;
 use std::collections::hash_map::DefaultHasher;
 use std::path::PathBuf;
 use tokio::fs::{metadata, File};
@@ -34,31 +34,33 @@ impl TryFrom<&Request<Body>> for Resource {
             debug!("found a file {:?}", file_path);
             if let Some(extension) = file_path.extension() {
                 match extension.to_str() {
+                    Some("ttl") | Some("jsonld") => {
+                        return Ok(Self {
+                            resource_type: ResourceType::RDFSource,
+                            path: file_path,
+                        })
+                    }
 
-                    Some("ttl") | Some("jsonld") => return Ok(Self{
-                        resource_type: ResourceType::RDFSource,
-                        path: file_path,
-                    }),
-
-                    _ => return Ok(Self{
-                        resource_type: ResourceType::NonRDF,
-                        path: file_path,
-                    })
+                    _ => {
+                        return Ok(Self {
+                            resource_type: ResourceType::NonRDF,
+                            path: file_path,
+                        })
+                    }
                 }
             }
 
-            return Ok(Self{
+            return Ok(Self {
                 resource_type: ResourceType::NonRDF,
                 path: file_path,
-            })
+            });
         }
 
-        return Err(ResourceError::NotFound)
+        return Err(ResourceError::NotFound);
     }
 }
 
 impl Resource {
-
     pub async fn to_body(&mut self) -> Result<Body, std::io::Error> {
         match self.resource_type {
             ResourceType::RDFSource => {
@@ -94,15 +96,20 @@ impl Resource {
         }
     }
 
-    pub async fn etag(&self) -> String {
-
+    pub async fn last_modified(&self) -> String {
+        // TODO cache the result - only lookup one time
         if let Ok(metadata) = metadata(&self.path).await {
             if let Ok(modified) = metadata.modified() {
-                let mut h = DefaultHasher::new();
-                modified.hash(&mut h);
-                return h.finish().to_string();
+                return httpdate::fmt_http_date(modified);
             }
         }
         "".to_owned()
+    }
+
+    pub async fn etag(&self) -> String {
+        let modified = self.last_modified().await;
+        let mut h = DefaultHasher::new();
+        modified.hash(&mut h);
+        return h.finish().to_string();
     }
 }

@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 structopt = "0.3"
 http = "0.1"
+httpdate = "0.3"
 hyper = "0.13.0-alpha"
 futures-preview = "0.3.0-alpha"
 log = "0.4"
