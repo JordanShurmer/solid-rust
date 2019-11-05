@@ -1,6 +1,5 @@
-[workspace]
 [package]
-name = "solid-rust"
+name = "server"
 version = "0.1.0"
 authors = ["Jordan Shurmer <jordan@shurmer.family>"]
 edition = "2018"
@@ -8,12 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-server = { path = "server" }
+http = "0.1"
+httpdate = "0.3"
+hyper = "0.13.0-alpha"
+futures-preview = "0.3.0-alpha"
 log = "0.4"
 pretty_env_logger = "0.3"
-structopt = "0.3"
 tokio = "0.2.0-alpha"
-# I don't think these submodules are needed
-tokio-fs = "0.2.0-alpha"
-tokio-io = "0.2.0-alpha"
-
