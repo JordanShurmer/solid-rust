@@ -8,13 +8,16 @@ Work (barely) In Progress. Not useable at all.
 
 See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milestones](https://github.com/JordanShurmer/solid-rust/milestones) to get an idea of the on going work.
 
-### Tests
+- [ ] LDP support
+- [ ] WAC
+- [ ] WebId
+- [ ] ...
 
-Need to get some integration tests set up. These don't have to be in rust.. they would need to 1) start the rust server, 2) make a series of requests, 3) validate the responses.
+### Tests Status
 
-Perhaps Postman's [newman](https://learning.getpostman.com/docs/postman/collection_runs/command_line_integration_with_newman/) CLI would be a good fit here.
+- [x] integration tests (you must have [`newman`] installed)
 
-### LDP
+### LDP Status
 
 The first step I'm taking is to implement the LDP portion of a Solid server. There doesn't seem to be any already existing LDP servers in Rust, so this is from scratch.
 
@@ -31,11 +34,11 @@ The first step I'm taking is to implement the LDP portion of a Solid server. The
 
 ## Architecture
 
-- [main.rs](./src/main.rs) - entry point. Contains the main http request handler which dispatches the request to one of the other modules depending on which one is relevant
-- [our.rs](./src/our.rs) - contains shared type definitions. e.g. `our::ServerResult`
-- [ldp module](./src/ldp) - An LDP server. Handles most requests once someone is logged in.
+This is actually set up as a [Cargo Workspace](https://doc.rust-lang.org/nightly/book/ch14-03-cargo-workspaces.html). The workspace parent crate is here, and the [server](./server) crate is a member.
 
-More TBD. Need to think about test-ability more
+This parent crate is the CLI binary which is a very minimal wrapper around everything in ther server crate. The [server](./server) crate is the actual application.
+
+More TBD.
 
 ## Running the server
 
@@ -44,6 +47,29 @@ More TBD. Need to think about test-ability more
 cd solid-rust
 cargo run
 ```
+
+## Tests
+
+Tests are run by running Postman's [newman] from within a cargo integration test. The tests will start the server on port 7171, then execute various requests against 127.0.0.1:7171.
+
+Unfortunately, this means you have to have [`newman`] installed. `npm install -g newman`. Alternatively, you can install the man Postman client and import the test suite and run it there.
+
+More on using Postman for tests [here](https://www.getpostman.com/automated-testing).
+
+### Running the tests
+
+```bash
+cd server
+cargo test
+
+# or, you can invoke newman directly if you want for some reason
+cd server
+newman run test-suite.postman_collection.json -e test-default-env.postman_environment.json
+```
+
+### Writing tests
+
+The best way to write more integration tests is to use [Postman](https://www.getpostman.com/). You can import [the test suite](./server/tests/test-suite.postman_collection.json), add your own requests/tests scripts, then export back into the repo.
 
 ## Contributing
 
@@ -66,8 +92,10 @@ Contributions are welcome!
 - [Solid landing page][SoLiD]
 - [The Node Solid Server][nss]
 - Inrupt's new [pod-server]
-- [tide](https://github.com/rustasync/tide) - async/await http in rust
+- [tokio docs](https://docs.rs/tokio)
+- [hyper docs](https://docs.rs/hyper)
 
 [SoLid]: https://solid.github.io/
 [pod-server]: https://github.com/inrupt/pod-server
 [nss]: https://github.com/solid/node-solid-server
+[newman]: https://learning.getpostman.com/docs/postman/collection_runs/command_line_integration_with_newman/

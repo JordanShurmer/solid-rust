@@ -1,0 +1,335 @@
+{
+	"info": {
+		"_postman_id": "dc75d7ec-c744-44e1-b94a-65fe57ff83fa",
+		"name": "test-suite",
+		"description": "A collection of requests used to validate the implementation.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ldp",
+			"item": [
+				{
+					"name": "RDFSource",
+					"item": [
+						{
+							"name": "Successful Turtle->Turtle",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "89a0800b-e3eb-465d-9220-0d5bc3b77d3c",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Content-Type is text/turtle\", function () {",
+											"    pm.response.to.have.header(\"Content-Type\", 'text/turtle');",
+											"});",
+											"pm.test(\"Link header advertises RDFSource\", function () {",
+											"    pm.response.to.have.header(\"Link\", '<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"');",
+											"})",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "text/turtle",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A simple GET request for a .ttl resource and text/turtle content-type"
+							},
+							"response": []
+						},
+						{
+							"name": "Successful JsonLD->JsonLD",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "89a0800b-e3eb-465d-9220-0d5bc3b77d3c",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Content-Type is text/turtle\", function () {",
+											"    pm.response.to.have.header(\"Content-Type\", 'application/ld+json');",
+											"});",
+											"pm.test(\"Link header advertises RDFSource\", function () {",
+											"    pm.response.to.have.header(\"Link\", '<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"');",
+											"});",
+											"pm.test(\"Body is valid json\", function () {",
+											"   pm.response.to.have.jsonBody(); ",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "text/turtle"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.jsonld",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.jsonld"
+									]
+								},
+								"description": "A simple GET request for a .ttl resource and text/turtle content-type"
+							},
+							"response": []
+						}
+					],
+					"description": "Requests for RDFSources",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9349cea2-159f-43e2-97d8-f90038e4d036",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "86095adb-3fff-4353-bf76-dd024a868f44",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Has correct Allow header\", function () {",
+									"    pm.response.to.have.header('Allow', 'GET,HEAD,OPTIONS')",
+									"})"
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Non-RDFSource",
+					"item": [
+						{
+							"name": "Successful Binary",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8973c9eb-dbab-4215-bab8-9e8520f4c371",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Link header advertises NonRDFSource\", function () {",
+											"    pm.response.to.have.header(\"Link\", '<http://www.w3.org/ns/ldp#NonRDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"');",
+											"});",
+											"pm.test('Has a body', function() {",
+											"    pm.response.to.have.body();",
+											"});",
+											"pm.test('Has binary content-type', function () {",
+											"   pm.response.to.have.header(\"Content-Type\", 'application/octet-stream'); ",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/tests/static/solid.ico",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"solid.ico"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "Requests for binaries and everything non-rdf",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "f4a8178f-ab11-46d2-8440-da7c7cdac49f",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "7b255a3b-ab12-4157-b451-008e01c2726f",
+								"type": "text/javascript",
+								"exec": [
+									"pm.test(\"Has correct Allow header\", function () {",
+									"    pm.response.to.have.header('Allow', 'GET,HEAD,OPTIONS')",
+									"})"
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"description": "Requests specific to the LDP functionality of a Solid server",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "5af4feb7-c860-481c-a21f-6412fd57f1c4",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "b9d3b886-3b78-4c04-918a-77bcaceef74b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "http",
+			"item": [
+				{
+					"name": "Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "30ec3d4e-b4b4-4d59-9952-544f7552cc4a",
+								"exec": [
+									"const moment = require('moment');",
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base-url}}/tests/static/something-not-found",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"tests",
+								"static",
+								"something-not-found"
+							]
+						},
+						"description": "A request for a non-existant resource should 404"
+					},
+					"response": []
+				},
+				{
+					"name": "Okay",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8544d077-b467-4e01-bfb4-4ef8c779cdc2",
+								"exec": [
+									"const moment = require('moment');",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Date header is correct\", function () {",
+									"    pm.response.to.have.header('date');",
+									"    const httpDate = moment(pm.response.headers.get('date'));",
+									"    pm.expect(httpDate.isSame(moment(), 'minute')).to.be.true;",
+									"});",
+									"pm.test('Content-Length is accurate', function () {",
+									"    pm.response.to.have.header('Content-Length', `${pm.response.text().length}`);",
+									"});",
+									"pm.test(\"Last-Modified and ETag header are correct\", function () {",
+									"    pm.response.to.have.header('last-modified');",
+									"    const modifiedDate = moment(pm.response.headers.get('last-modified'));",
+									"    pm.expect(modifiedDate.isBefore(moment()));",
+									"    ",
+									"    pm.response.to.have.header('ETag');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base-url}}/tests/static/profile.ttl",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"tests",
+								"static",
+								"profile.ttl"
+							]
+						},
+						"description": "A simple succeful request. Validate various http headers et al."
+					},
+					"response": []
+				}
+			],
+			"description": "General HTTP functionality tests",
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
