@@ -17,6 +17,15 @@ See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milest
 
 - [x] integration tests (you must have [`newman`] installed)
 
+### HTTTP
+
+- [ ] Conditional Requests
+  - [ ] If-Match
+  - [ ] If-Unmodified-Since
+  - [ ] If-None-Match
+  - [ ] If-Modified-Since
+  - [ ] Range/If-Range (optional)
+
 ### LDP Status
 
 The first step I'm taking is to implement the LDP portion of a Solid server. There doesn't seem to be any already existing LDP servers in Rust, so this is from scratch.
