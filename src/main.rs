@@ -20,5 +20,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli_opts = CliOpts::from_args();
     debug!("{:?}", cli_opts);
 
-    serve(cli_opts.port).await
+    // todo: Handle graceful shutdowns somehow
+    let (_, rx) = tokio::sync::oneshot::channel();
+
+    serve(cli_opts.port, rx).await
 }

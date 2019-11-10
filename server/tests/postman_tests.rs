@@ -1,16 +1,18 @@
 use log::info;
 use std::process::Command;
 use tokio::runtime::Runtime;
+use tokio::sync::oneshot;
 
 #[tokio::test]
 async fn run_postman() {
     pretty_env_logger::init();
 
     info!("starting the test");
+    let (tx, rx) = oneshot::channel();
     let runtime = Runtime::new().unwrap();
     let executor = runtime.executor();
     executor.spawn(async {
-        let _ = server::serve(7171).await.expect("Error running the server");
+        let _ = server::serve(7171, rx).await.expect("Error running the server");
     });
 
     // TODO: use a channel to communicate that the server is ready rather than waiting
@@ -33,5 +35,6 @@ async fn run_postman() {
         .expect("\n\nFailed to execute newman. Ensure newman is installed properly (npm -i -g newman)\n\n")
     };
 
+    let _ = tx.send(());
     assert!(status.success())
 }

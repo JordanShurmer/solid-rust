@@ -112,4 +112,12 @@ impl Resource {
         modified.hash(&mut h);
         return h.finish().to_string();
     }
+
+    pub fn link(&self) -> &str {
+        match &self.resource_type {
+            ResourceType::RDFSource => "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"",
+
+            ResourceType::NonRDF => "<http://www.w3.org/ns/ldp#NonRDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\""
+        }
+    }
 }

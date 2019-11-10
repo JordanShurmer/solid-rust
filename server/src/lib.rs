@@ -12,8 +12,7 @@ use tokio::sync::oneshot;
 // *** *** ***
 // ENTRY POINT
 // *** *** ***
-// pub async fn serve(port: u16, receive_kill: oneshot::Receiver<()>, transmit_ready: oneshot::Sender<()>) -> Result<(), Box<dyn std::error::Error>> {
-pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn serve(port: u16, stop: oneshot::Receiver<()>) -> Result<(), Box<dyn std::error::Error>> {
     // pretty_env_logger::init();
 
     // localhost, on the given port
@@ -45,14 +44,13 @@ pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
         }
     }));
 
-    // let graceful = server.with_graceful_shutdown(async {
-        // receive_kill.await.ok();
-    // });
+    let graceful = server.with_graceful_shutdown(async {
+        stop.await.ok();
+    });
 
     info!("Listening on http://{}", addr);
 
-    // let _ = tx_ready.send(());
-    if let Err(e) = server.await {
+    if let Err(e) = graceful.await {
         error!("server error: {}", e);
     }
 
