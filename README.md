@@ -49,6 +49,18 @@ This parent crate is the CLI binary which is a very minimal wrapper around every
 
 More TBD.
 
+Lifecycle of a request:
+
+- Construct a Resource
+  - path
+    - file
+  - etag
+  - last modified
+- 
+
+- Check Conditional Headers
+- Handle the request as an LDP Resource
+
 ## Running the server
 
 ```bash

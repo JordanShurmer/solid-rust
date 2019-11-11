@@ -1,15 +1,14 @@
+mod http;
+mod error;
 mod ldp;
-mod our;
-mod base_http;
 
-use base_http::Conditional;
+use crate::http::Conditional;
 use hyper::error::Error;
 use hyper::server::conn::AddrStream;
 use hyper::service::make_service_fn;
 use hyper::service::service_fn;
 use hyper::{Body, Request, Response, Server, StatusCode};
 use log::{error, info};
-use tokio::sync::oneshot;
 
 // *** *** ***
 // ENTRY POINT
@@ -28,19 +27,29 @@ pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
         async move {
             Ok::<_, Error>(service_fn(move |request: Request<Body>| {
                 async {
-
                     // call the handler, we handle errors with a 500 response
                     match dispatch(request).await {
                         Ok(response) => Ok::<_, Error>(response),
 
                         Err(e) => {
                             error!("Error reading file, {:?}", e);
-                            Ok::<_, Error>(
-                                Response::builder()
-                                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                                    .body(Body::empty())
-                                    .unwrap(),
-                            )
+                            match e.kind {
+                                error::Kind::NotFound => {
+                                    let not_found: &[u8] = b"NOT FOUND";
+                                    Ok::<_, Error>(
+                                        Response::builder()
+                                            .status(StatusCode::NOT_FOUND)
+                                            .body(not_found.into())
+                                            .unwrap(),
+                                    )
+                                }
+                                _ => Ok::<_, Error>(
+                                    Response::builder()
+                                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                                        .body(Body::empty())
+                                        .unwrap(),
+                                ),
+                            }
                         }
                     }
                 }
@@ -49,7 +58,7 @@ pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
     }));
 
     // let graceful = server.with_graceful_shutdown(async {
-        // stop.await.ok();
+    // stop.await.ok();
     // });
 
     info!("Listening on http://{}", addr);
@@ -62,18 +71,14 @@ pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 // Take a request, and dispatch it to the right server
-async fn dispatch(request: Request<Body>) -> our::ServerResult {
-
-    match base_http::conditional(&request).await {
-
-        Conditional::PreconditionFailed => Ok (
-            Response::builder()
+async fn dispatch(request: Request<Body>) -> Result<Response<Body>, error::Error> {
+    let resource = http::Resource::from_request(request).await?;
+    match resource.condition() {
+        Conditional::PreconditionFailed => Ok(Response::builder()
             .status(StatusCode::PRECONDITION_FAILED)
             .body(hyper::Body::empty())
-            .unwrap()
-        ),
+            .unwrap()),
 
-        Conditional::Valid => ldp::handle(request).await
+        Conditional::Valid => ldp::handle(resource).await,
     }
-
 }

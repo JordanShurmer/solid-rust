@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "dc75d7ec-c744-44e1-b94a-65fe57ff83fa",
+		"_postman_id": "85d10b57-c5ed-4377-84e5-cb28a1900796",
 		"name": "test-suite",
 		"description": "A collection of requests used to validate the implementation.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -240,6 +240,93 @@
 		{
 			"name": "http",
 			"item": [
+				{
+					"name": "Conditional",
+					"item": [
+						{
+							"name": "If-Match: 412",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f3ebdbda-d45f-4bb2-8e5e-06ee4b71e17f",
+										"exec": [
+											"pm.test(\"If-Match Precondition fails (412)\", function () {",
+											"    pm.response.to.have.status(412);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "If-Match",
+										"value": "foo-bar",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A request which contains an If-Match header value which should not match the server's, therfore result in a 412 response"
+							},
+							"response": []
+						},
+						{
+							"name": "If-Match: 200",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8d73c914-5f0b-4df2-a577-fc566efb8233",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "If-Match",
+										"value": "11714434167580421662",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A requeset containing an If-Match header which should match the server's"
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
 				{
 					"name": "Not Found",
 					"event": [

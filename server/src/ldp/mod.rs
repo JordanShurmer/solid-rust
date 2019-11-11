@@ -1,11 +1,13 @@
 mod resource;
 
 use core::convert::TryFrom;
-use hyper::{Body, Method, Request, Response, StatusCode};
+use hyper::{Body, Method, Response, StatusCode};
 use log::debug;
+//TODO: re-user crate::error::Error instead
 use resource::{Resource, ResourceError};
 
-pub async fn handle(request: Request<Body>) -> crate::our::ServerResult {
+pub async fn handle(resource: crate::http::Resource) -> Result<Response<Body>, crate::error::Error> {
+    let request = resource.request;
     debug!(
         "ldp handling request {} {}",
         request.method(),
