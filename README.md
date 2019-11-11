@@ -20,7 +20,7 @@ See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milest
 ### HTTTP
 
 - [ ] Conditional Requests
-  - [ ] If-Match
+  - [x] If-Match
   - [ ] If-Unmodified-Since
   - [ ] If-None-Match
   - [ ] If-Modified-Since

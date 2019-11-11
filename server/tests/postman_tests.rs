@@ -12,7 +12,8 @@ async fn run_postman() {
     let runtime = Runtime::new().unwrap();
     let executor = runtime.executor();
     executor.spawn(async {
-        let _ = server::serve(7171, rx).await.expect("Error running the server");
+        // let _ = server::serve(7171, rx).await.expect("Error running the server");
+        let _ = server::serve(7171).await.expect("Error running the server");
     });
 
     // TODO: use a channel to communicate that the server is ready rather than waiting

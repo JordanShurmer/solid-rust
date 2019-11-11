@@ -21,7 +21,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     debug!("{:?}", cli_opts);
 
     // todo: Handle graceful shutdowns somehow
-    let (_, rx) = tokio::sync::oneshot::channel();
+    // let (tx, rx) = tokio::sync::oneshot::channel();
 
-    serve(cli_opts.port, rx).await
+    serve(cli_opts.port).await
+
 }
