@@ -57,6 +57,20 @@ impl Resource {
             }
         }
 
+        if let Some(request_header) = request.headers().get("If-Modified-Since") {
+            if let Ok(header_value) = httpdate::parse_http_date(request_header.to_str().unwrap_or_default()) {
+                if modified_time <= header_value {
+                    return Err(Error {
+                        kind: NotModified,
+                    });
+                }
+            }
+        }
+
+        // TODO: fix the precedence... e.g. If-Modified-Since should be ignored if there is an If-None-Match
+        // TODO: Range requests
+
+
         Ok(Self {
             file_path,
             etag,

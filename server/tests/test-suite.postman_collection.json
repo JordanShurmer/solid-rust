@@ -482,6 +482,86 @@
 								"description": "A request which sends an If-None-Match header which should not match the server's"
 							},
 							"response": []
+						},
+						{
+							"name": "If-Modified-Since: 200",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "0d3f45fa-7690-4d04-ad37-43a38e497627",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "If-Modified-Since",
+										"value": "Sat, 26 Oct 2000 02:04:36 GMT",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A request for a resource which has indeed been modified"
+							},
+							"response": []
+						},
+						{
+							"name": "If-Modified-Since: 304",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "0d3f45fa-7690-4d04-ad37-43a38e497627",
+										"exec": [
+											"pm.test(\"Status code is 304\", function () {",
+											"    pm.response.to.have.status(304);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "If-Modified-Since",
+										"type": "text",
+										"value": "Sat, 26 Oct 9000 02:04:36 GMT"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A request for a resource which has indeed been modified"
+							},
+							"response": []
 						}
 					],
 					"protocolProfileBehavior": {},
