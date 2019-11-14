@@ -1,79 +1,86 @@
-mod resource;
+use crate::error::Error;
+use hyper::{Body, Request};
+use tokio::fs::File;
+use tokio::prelude::*;
 
-use core::convert::TryFrom;
-use hyper::{Body, Method, Response, StatusCode};
-use log::debug;
-//TODO: re-user crate::error::Error instead
-use resource::{Resource, ResourceError};
+#[derive(Debug)]
+pub enum ResourceType {
+    RDFSource,
+    NonRDF,
+}
 
-pub async fn handle(resource: crate::http::Resource) -> Result<Response<Body>, crate::error::Error> {
-    let request = resource.request;
-    debug!(
-        "ldp handling request {} {}",
-        request.method(),
-        request.uri().path()
-    );
+// An LDP Resource is an HTTP Resource with a bit of metadata added
+#[derive(Debug)]
+pub struct Resource {
+    http_resource: crate::http::Resource,
+    content_type: String,
+    resource_type: ResourceType,
+}
 
-    match request.method() {
-        &Method::GET => match Resource::try_from(&request) {
-            Ok(mut resource) => Ok(rdf_response(resource.content_type(), resource.link())
-                .status(StatusCode::OK)
-                .header("Last-Modified", resource.last_modified().await)
-                .header("ETag", resource.etag().await)
-                .body(resource.to_body().await?)
-                .unwrap()),
+impl Resource {
+    pub async fn from_request(request: &Request<Body>) -> Result<Self, Error> {
+        // get an http resource and turn that `into` our resource
+        Ok(crate::http::Resource::from_request(&request).await?.into())
+    }
 
-            Err(e) => match e {
-                ResourceError::NotFound => {
-                    let not_found: &[u8] = b"NOT FOUND";
-                    Ok(Response::builder()
-                        .status(StatusCode::NOT_FOUND)
-                        .body(not_found.into())
-                        .unwrap())
-                }
-            },
-        },
+    // Turn the resource into an http body
+    pub async fn http_body(&mut self) -> Result<Body, Error> {
+        match self.resource_type {
+            ResourceType::RDFSource => {
+                let mut file = File::open(&self.http_resource.file_path).await?;
+                let mut contents = vec![];
+                file.read_to_end(&mut contents).await?;
+                Ok(Body::from(contents))
+            }
 
-        &Method::HEAD => match Resource::try_from(&request) {
-            Ok(resource) => Ok(rdf_response(resource.content_type(), resource.link())
-                .status(StatusCode::OK)
-                .header("Last-Modified", resource.last_modified().await)
-                .header("ETag", resource.etag().await)
-                .body(Body::empty())
-                .unwrap()),
+            ResourceType::NonRDF => {
+                let mut file = File::open(&self.http_resource.file_path).await?;
+                let mut contents = vec![];
+                file.read_to_end(&mut contents).await?;
+                Ok(Body::from(contents))
+            }
+        }
+    }
 
-            Err(e) => match e {
-                ResourceError::NotFound => Ok(Response::builder()
-                    .status(StatusCode::NOT_FOUND)
-                    .body(Body::empty())
-                    .unwrap()),
-            },
-        },
+    // Turn the resource into an http response builder
+    pub fn response_builder(&self) -> http::response::Builder {
+        let link = match self.resource_type {
+            ResourceType::RDFSource => "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"",
 
-        &Method::OPTIONS => Ok(base_response().body(Body::empty()).unwrap()),
+            ResourceType::NonRDF => "<http://www.w3.org/ns/ldp#NonRDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\""
+        };
 
-        _ => Ok(Response::builder()
-            .status(StatusCode::METHOD_NOT_ALLOWED)
-            .header("Accept", "GET")
-            .body(Body::empty())
-            .unwrap()),
+        let mut builder: hyper::http::response::Builder = self.http_resource.response_builder();
+
+        // Add the LDP specific metadata
+        builder
+            .header("Content-Type", &self.content_type)
+            .header("Link", link);
+
+        builder
     }
 }
 
-// *** *** ***
-// setup the response with the
-// RDF Resource related info
-// *** *** ***
-fn base_response() -> http::response::Builder {
-    let mut builder = Response::builder();
-    builder.header("Allow", "GET,HEAD,OPTIONS");
+impl From<crate::http::Resource> for Resource {
 
-    return builder;
+    // Turn an http resource into an ldp resource
+    fn from(resource: crate::http::Resource) -> Self {
+
+        // Derive content types from the file extension :\?
+        // this will change when we support Content Negotiation
+        let extension = resource.file_path.extension().unwrap_or_default();
+        let (resource_type, content_type) = match extension.to_str() {
+            Some("ttl") => (ResourceType::RDFSource, "text/turtle".to_owned()),
+            Some("jsonld") => (ResourceType::RDFSource, "application/ld+json".to_owned()),
+            _ => (ResourceType::NonRDF, "application/octet-stream".to_owned()),
+        };
+
+        Self {
+            http_resource: resource,
+            resource_type,
+            content_type,
+        }
+    }
 }
-fn rdf_response(content_type: &str, link: &str) -> http::response::Builder {
-    let mut builder = base_response();
-    builder
-        .header("Content-Type", content_type)
-        .header("Link", link);
-    builder
-}
+
+

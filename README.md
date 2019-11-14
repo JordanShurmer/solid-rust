@@ -47,19 +47,9 @@ This is actually set up as a [Cargo Workspace](https://doc.rust-lang.org/nightly
 
 This parent crate is the CLI binary which is a very minimal wrapper around everything in ther server crate. The [server](./server) crate is the actual application.
 
+The gist of the code structure is as follows. There is a module for each of the major specs that are involved in a Solid server. For example, the [http](./server/http) module handles various things about the HTTP related specs; the [ldp](./server/ldp) module handles the things which are particular to the LDP specs.
+
 More TBD.
-
-Lifecycle of a request:
-
-- Construct a Resource
-  - path
-    - file
-  - etag
-  - last modified
-- 
-
-- Check Conditional Headers
-- Handle the request as an LDP Resource
 
 ## Running the server
 

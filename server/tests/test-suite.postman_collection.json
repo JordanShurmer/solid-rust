@@ -322,6 +322,86 @@
 								"description": "A requeset containing an If-Match header which should match the server's"
 							},
 							"response": []
+						},
+						{
+							"name": "If-Unmodified-Since: 412",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "42f039ff-89f2-4a9a-a696-0ace0b337339",
+										"exec": [
+											"pm.test(\"If-Match Precondition fails (412)\", function () {",
+											"    pm.response.to.have.status(412);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "If-Unmodified-Since",
+										"value": "Sat, 26 Oct 2000 02:04:36 GMT",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A request for a resource, but it's been modified more recently than I want"
+							},
+							"response": []
+						},
+						{
+							"name": "If-Unmodified-Since: 200",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "42f039ff-89f2-4a9a-a696-0ace0b337339",
+										"exec": [
+											"pm.test(\"If-Match Precondition fails (200)\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "If-Unmodified-Since",
+										"type": "text",
+										"value": "Sat, 26 Oct 9000 02:04:36 GMT"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A request for a resource which has not been modified"
+							},
+							"response": []
 						}
 					],
 					"protocolProfileBehavior": {},
