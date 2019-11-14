@@ -402,6 +402,86 @@
 								"description": "A request for a resource which has not been modified"
 							},
 							"response": []
+						},
+						{
+							"name": "If-None-Match: 200",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "27d161f4-360f-48a0-b85e-7d581cb6c298",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "If-None-Match",
+										"value": "foobar, baz",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A request which sends an If-None-Match header which should not match the server's"
+							},
+							"response": []
+						},
+						{
+							"name": "If-None-Match: 304",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "27d161f4-360f-48a0-b85e-7d581cb6c298",
+										"exec": [
+											"pm.test(\"Status code is 304\", function () {",
+											"    pm.response.to.have.status(304);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "HEAD",
+								"header": [
+									{
+										"key": "If-None-Match",
+										"type": "text",
+										"value": "foobar, 11714434167580421662"
+									}
+								],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl"
+									]
+								},
+								"description": "A request which sends an If-None-Match header which should not match the server's"
+							},
+							"response": []
 						}
 					],
 					"protocolProfileBehavior": {},

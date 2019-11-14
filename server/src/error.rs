@@ -10,6 +10,7 @@ pub enum Kind {
     NotFound,
     PreconditionFailed,
     MethodNotAllowed,
+    NotModified,
     Unexpected,
 }
 

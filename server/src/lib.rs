@@ -50,9 +50,15 @@ pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
                                     .body(hyper::Body::empty())
                                     .unwrap()),
 
+                                // 405
                                 MethodNotAllowed => Ok(Response::builder()
                                     .status(StatusCode::METHOD_NOT_ALLOWED)
                                     .header("Allow", "GET,HEAD,OPTIONS")
+                                    .body(Body::empty()).unwrap()),
+
+                                // 304
+                                NotModified => Ok(Response::builder()
+                                    .status(StatusCode::NOT_MODIFIED)
                                     .body(Body::empty()).unwrap()),
 
                                 // 500

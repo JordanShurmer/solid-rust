@@ -46,6 +46,16 @@ impl Resource {
                 }
             }
         }
+        
+        if let Some(request_header) = request.headers().get("If-None-Match") {
+            for header_tag in request_header.to_str().unwrap_or_default().split(",") {
+                if etag == header_tag.trim() {
+                    return Err(Error {
+                        kind: NotModified
+                    });
+                }
+            }
+        }
 
         Ok(Self {
             file_path,
