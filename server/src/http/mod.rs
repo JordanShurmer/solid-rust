@@ -29,7 +29,7 @@ impl Resource {
         last_modified.hash(&mut h);
         let etag = h.finish().to_string();
 
-        let conditional = Conditional::new(request, modified_time, etag.clone());
+        let conditional = Conditional::new(request, &modified_time, &etag);
         let get_or_head = request.method() == &Method::GET || request.method() == &Method::HEAD;
 
         // Conditional HTTP Request checks
