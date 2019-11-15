@@ -17,13 +17,13 @@ See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milest
 
 - [x] integration tests (you must have [`newman`] installed)
 
-### HTTTP
+### HTTTP Status
 
-- [ ] Conditional Requests
+- [x] Conditional Requests
   - [x] If-Match
-  - [ ] If-Unmodified-Since
-  - [ ] If-None-Match
-  - [ ] If-Modified-Since
+  - [x] If-Unmodified-Since
+  - [x] If-None-Match
+  - [x] If-Modified-Since
   - [ ] Range/If-Range (optional)
 
 ### LDP Status
@@ -36,8 +36,10 @@ The first step I'm taking is to implement the LDP portion of a Solid server. The
   - [x] Link header
   - [x] Allow header
   - [x] ETag Header
-  - [ ] Conditional Requests
+  - [x] Conditional Requests
   - [ ] Content Negotiation (`.ttl->application/ld+json` et al.) (`Accept` header)
+    - [x] text/turtle
+    - [ ] **application/ld+json**
 - [ ] Write Resources
 - [ ] Containers
 
@@ -70,7 +72,7 @@ More on using Postman for tests [here](https://www.getpostman.com/automated-test
 ### Running the tests
 
 ```bash
-cd server
+cd solid-rust/server
 cargo test
 
 # or, you can invoke newman directly if you want for some reason
@@ -91,7 +93,7 @@ Contributions are welcome!
 - follow the guidelines
 - submit a pull request
 
-**It may be hard for now, since there's not really anything to contribute too.**
+**One major contribution we need is json-ld support. I haven't found any existing rust crate for interacting with rdf through json-ld.**
 
 ### Guidelines
 
@@ -106,6 +108,13 @@ Contributions are welcome!
 - [tokio docs](https://docs.rs/tokio)
 - [hyper docs](https://docs.rs/hyper)
 
+### Sepcs
+
+- [ldp]
+- [solid spec]
+
+[ldp]: https://www.w3.org/TR/ldp/
+[solid spec]: https://github.com/solid/specification
 [SoLid]: https://solid.github.io/
 [pod-server]: https://github.com/inrupt/pod-server
 [nss]: https://github.com/solid/node-solid-server
