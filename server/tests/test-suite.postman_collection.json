@@ -652,6 +652,46 @@
 						"description": "A simple succeful request. Validate various http headers et al."
 					},
 					"response": []
+				},
+				{
+					"name": "Not Acceptable",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e4f82edf-db32-4cca-974d-6de490771310",
+								"exec": [
+									"pm.test(\"Status code is 406\", function () {",
+									"    pm.response.to.have.status(406);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/foobar",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base-url}}/tests/static/profile.ttl",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"tests",
+								"static",
+								"profile.ttl"
+							]
+						},
+						"description": "A request for a Content-Type that the server will not support"
+					},
+					"response": []
 				}
 			],
 			"description": "General HTTP functionality tests",

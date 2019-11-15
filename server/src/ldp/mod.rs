@@ -1,4 +1,5 @@
-use crate::error::Error;
+use crate::http::media_type::MediaType;
+use crate::error::{Error, Kind};
 use hyper::{Body, Request};
 use tokio::fs::File;
 use tokio::prelude::*;
@@ -24,13 +25,22 @@ impl Resource {
     }
 
     // Turn the resource into an http body
-    pub async fn http_body(&mut self) -> Result<Body, Error> {
+    pub async fn http_body(&mut self, desired_media_type: Option<&str>) -> Result<Body, Error> {
         match self.resource_type {
             ResourceType::RDFSource => {
-                let mut file = File::open(&self.http_resource.file_path).await?;
-                let mut contents = vec![];
-                file.read_to_end(&mut contents).await?;
-                Ok(Body::from(contents))
+                let desired_media_type = desired_media_type.unwrap_or("text/tutle");
+                let our_media_type: MediaType = self.content_type.as_str().into();
+
+                // TODO: load RDF and translate between content types
+                if our_media_type.matches(desired_media_type) {
+                    let mut file = File::open(&self.http_resource.file_path).await?;
+                    let mut contents = vec![];
+                    file.read_to_end(&mut contents).await?;
+                    return Ok(Body::from(contents));
+                }
+                Err(Error {
+                    kind: Kind::NotAcceptable,
+                })
             }
 
             ResourceType::NonRDF => {
@@ -62,10 +72,8 @@ impl Resource {
 }
 
 impl From<crate::http::Resource> for Resource {
-
     // Turn an http resource into an ldp resource
     fn from(resource: crate::http::Resource) -> Self {
-
         // Derive content types from the file extension :\?
         // this will change when we support Content Negotiation
         let extension = resource.file_path.extension().unwrap_or_default();
@@ -82,5 +90,3 @@ impl From<crate::http::Resource> for Resource {
         }
     }
 }
-
-

@@ -56,6 +56,12 @@ pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
                                     .header("Allow", "GET,HEAD,OPTIONS")
                                     .body(Body::empty()).unwrap()),
 
+                                // 406
+                                NotAcceptable => Ok(Response::builder()
+                                    .status(StatusCode::NOT_ACCEPTABLE)
+                                    .body(hyper::Body::empty())
+                                    .unwrap()),
+
                                 // 304
                                 NotModified => Ok(Response::builder()
                                     .status(StatusCode::NOT_MODIFIED)
@@ -104,7 +110,7 @@ async fn dispatch(request: Request<Body>) -> Result<Response<Body>, error::Error
     let mut response: hyper::http::response::Builder = resource.response_builder();
     response.header("Allow", "GET,HEAD,OPTIONS");
     match request.method() {
-        &Method::GET => Ok(response.body(resource.http_body().await?)?),
+        &Method::GET => Ok(response.body(resource.http_body(request.headers().get("Accept").and_then(|header| header.to_str().ok())).await?)?),
 
         &Method::HEAD => Ok(response.body(Body::empty())?),
 

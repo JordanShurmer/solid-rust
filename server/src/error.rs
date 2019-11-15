@@ -11,6 +11,7 @@ pub enum Kind {
     PreconditionFailed,
     MethodNotAllowed,
     NotModified,
+    NotAcceptable,
     Unexpected,
 }
 

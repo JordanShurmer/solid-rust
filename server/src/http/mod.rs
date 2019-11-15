@@ -1,4 +1,5 @@
-mod conditional;
+pub mod media_type;
+pub mod conditional;
 
 use crate::error::Error;
 use crate::error::Kind::*;
