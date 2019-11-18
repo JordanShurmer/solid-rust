@@ -1,4 +1,4 @@
-name: Rust
+name: Nightly Server Lib test
 
 on: [push]
 
@@ -15,13 +15,6 @@ jobs:
       run: |
         rustup default nightly
         rustup update
-    - name: Build Server
-      run: cargo build --verbose
-      working-directory: ./server
     - name: Run Server tests
       run: cargo test --verbose
       working-directory: ./server
-    - name: Build CLI
-      run: cargo build --verbose
-    - name: Run CLI tests
-      run: cargo test --verbose
