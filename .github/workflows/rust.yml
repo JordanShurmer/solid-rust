@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install Newman
-      run: npm install -g newman
+      run: sudo npm install -g newman
     - name: Build Server
       run: cargo build --verbose
       working-directory: ./server
