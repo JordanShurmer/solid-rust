@@ -30,10 +30,11 @@ async fn run_postman() {
             .expect("\n\nFailed to execute newman. Ensure newman is installed properly (npm -i -g newman)\n\n")
     } else {
         Command::new("sh")
-        .arg("-c")
-        .arg("newman run test-suite.postman_collection.json -e test-default-env.postman_environment.json")
-        .status()
-        .expect("\n\nFailed to execute newman. Ensure newman is installed properly (npm -i -g newman)\n\n")
+            .current_dir("./tests")
+            .arg("-c")
+            .arg("newman run test-suite.postman_collection.json -e test-default-env.postman_environment.json")
+            .status()
+            .expect("\n\nFailed to execute newman. Ensure newman is installed properly (npm -i -g newman)\n\n")
     };
 
     let _ = tx.send(());
