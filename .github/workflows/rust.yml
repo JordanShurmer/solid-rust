@@ -1,0 +1,23 @@
+name: Rust
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install Newman
+      run: npm install -g newman
+    - name: Build Server
+      run: cargo build --verbose
+      working-directory: ./server
+    - name: Run Server tests
+      run: cargo test --verbose
+      working-directory: ./server
+    - name: Build CLI
+      run: cargo build --verbose
+    - name: Run CLI tests
+      run: cargo test --verbose
