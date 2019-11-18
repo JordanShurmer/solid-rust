@@ -11,6 +11,10 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install Newman
       run: sudo npm install -g newman
+    - name: Rustup
+      run: |
+        rustup default nightly
+        rustup update
     - name: Build Server
       run: cargo build --verbose
       working-directory: ./server
