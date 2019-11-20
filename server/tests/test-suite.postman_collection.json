@@ -297,6 +297,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "aee0012f-e12a-4f93-bc93-e0773e81b47f",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
@@ -304,7 +314,7 @@
 								"header": [
 									{
 										"key": "If-Match",
-										"value": "11714434167580421662",
+										"value": "{{etag_value}}",
 										"type": "text"
 									}
 								],
@@ -457,6 +467,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "6ecc2a78-6385-44c6-8bab-d0e12846ba06",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
@@ -465,7 +485,7 @@
 									{
 										"key": "If-None-Match",
 										"type": "text",
-										"value": "foobar, 11714434167580421662"
+										"value": "foobar, {{etag_value}}"
 									}
 								],
 								"url": {
@@ -562,6 +582,34 @@
 								"description": "A request for a resource which has indeed been modified"
 							},
 							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "704e6b96-25d0-4d69-9ee9-456e2f9717c6",
+								"type": "text/javascript",
+								"exec": [
+									"pm.sendRequest(`${pm.variables.get('base-url')}${pm.request.url.getPath()}`, function(err, res) {",
+									"    if (err) {",
+									"        console.error(\"error\", err);",
+									"    } else {",
+									"        pm.globals.set('etag_value', res.headers.get(\"ETag\"));",
+									"    }",
+									"})  "
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "850bc144-a2d1-490f-aa9f-c2fd5645233f",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
 						}
 					],
 					"protocolProfileBehavior": {},
