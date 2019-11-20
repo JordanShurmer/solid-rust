@@ -1,0 +1,20 @@
+name: Server Lib on nightly rust
+
+on: [push]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install Newman
+      run: sudo npm install -g newman
+    - name: Rustup
+      run: |
+        rustup default nightly
+        rustup update
+    - name: Run Server tests
+      run: cargo test --verbose
+      working-directory: ./server

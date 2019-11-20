@@ -1,9 +1,9 @@
-name: Nightly Server Lib test
+name: Server Lib on stable rust
 
 on: [push]
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
 
@@ -13,7 +13,7 @@ jobs:
       run: sudo npm install -g newman
     - name: Rustup
       run: |
-        rustup default nightly
+        rustup default stable
         rustup update
     - name: Run Server tests
       run: cargo test --verbose
