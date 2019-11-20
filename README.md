@@ -2,6 +2,13 @@
 
 A [SoLiD] server implemented in rust.
 
+![https://github.com/JordanShurmer/solid-rust/actions?query=workflow%3A%22Server+Lib+on+nightly+rust%22](https://github.com/JordanShurmer/solid-rust/workflows/Server%20Lib%20on%20nightly%20rust/badge.svg)
+![https://github.com/JordanShurmer/solid-rust/actions?query=workflow%3A%22Server+Lib+on+beta+rust%22](https://github.com/JordanShurmer/solid-rust/workflows/Server%20Lib%20on%20beta%20rust/badge.svg)
+![https://github.com/JordanShurmer/solid-rust/actions?query=workflow%3A%22Server+Lib+on+stable+rust%22](https://github.com/JordanShurmer/solid-rust/workflows/Server%20Lib%20on%20stable%20rust/badge.svg)
+
+
+
+
 ## Status
 
 Work (barely) In Progress. Not useable at all.
