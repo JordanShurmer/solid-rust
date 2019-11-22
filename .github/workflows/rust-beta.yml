@@ -1,4 +1,4 @@
-name: Server Lib on beta rust
+name: beta rust test
 
 on: [push]
 

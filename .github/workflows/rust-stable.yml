@@ -1,4 +1,4 @@
-name: Server Lib on stable rust
+name: stable rust test
 
 on: [push]
 

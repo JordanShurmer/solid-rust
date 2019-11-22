@@ -1,4 +1,4 @@
-name: Server Lib on nightly rust
+name: nightly rust test
 
 on: [push]
 
