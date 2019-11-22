@@ -20,52 +20,51 @@ See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milest
 - [ ] WebId
 - [ ] ...
 
-### Tests Status
-
-- [x] integration tests (you must have [`newman`] installed)
-
 ### HTTTP Status
 
-- [x] Conditional Requests
-  - [x] If-Match
-  - [x] If-Unmodified-Since
-  - [x] If-None-Match
-  - [x] If-Modified-Since
+- [x] Read http resources (GET, HEAD, OPTIONS)
+- [ ] Write http resources (POST, PUT?)
+- [x] Conditional Requests (Etag, 412, 304 etc)
   - [ ] Range/If-Range (optional)
 
 ### LDP Status
 
-The first step I'm taking is to implement the LDP portion of a Solid server. There doesn't seem to be any already existing LDP servers in Rust, so this is from scratch.
+There doesn't seem to be any already existing LDP servers in Rust, so this is from scratch.
 
 - [ ] Read Resources (GET, HEAD, OPTIONS)
-  - [x] Turtle Resources
-  - [x] jsonld Resources
-  - [x] Link header
-  - [x] Allow header
-  - [x] ETag Header
-  - [x] Conditional Requests
   - [ ] Content Negotiation (`.ttl->application/ld+json` et al.) (`Accept` header)
     - [x] text/turtle
     - [ ] **application/ld+json**
 - [ ] Write Resources
-- [ ] Containers
+  - [ ] POST directly
+  - [ ] POST through container
+- [ ] Read Containers
+- [ ] Write Containers
 
 ## Architecture
 
-This is actually set up as a [Cargo Workspace](https://doc.rust-lang.org/nightly/book/ch14-03-cargo-workspaces.html). The workspace parent crate is here, and the [server](./server) crate is a member.
+This is set up as a [Cargo Workspace](https://doc.rust-lang.org/nightly/book/ch14-03-cargo-workspaces.html). The workspace parent crate is here, and the [server](./server) crate is a member.
 
 This parent crate is the CLI binary which is a very minimal wrapper around everything in ther server crate. The [server](./server) crate is the actual application.
 
-The gist of the code structure is as follows. There is a module for each of the major specs that are involved in a Solid server. For example, the [http](./server/http) module handles various things about the HTTP related specs; the [ldp](./server/ldp) module handles the things which are particular to the LDP specs.
+The gist of the code structure is as follows: there is a module for each of the major specs that are involved in a Solid server
+
+- HTTP: The [http](./server/http) module
+  handles various things about the HTTP related specs. Handles 404 detection, Conditional Requests, Accept Header, etc
+
+- LDP: The [ldp](./server/ldp) module
+  handles the things which are particular to the LDP specs. Handles LDP-Resource and LDP-Container related logic
 
 More TBD.
 
 ## Running the server
 
+Currently there are no pre-build binaries. To run the server you must run it from source using `cargo`.
+
 ```bash
 # clone the repo
 cd solid-rust
-cargo run
+cargo run # [-- -p port-number]
 ```
 
 ## Tests
@@ -81,15 +80,13 @@ More on using Postman for tests [here](https://www.getpostman.com/automated-test
 ```bash
 cd solid-rust/server
 cargo test
-
-# or, you can invoke newman directly if you want for some reason
-cd server
-newman run test-suite.postman_collection.json -e test-default-env.postman_environment.json
 ```
 
 ### Writing tests
 
-The best way to write more integration tests is to use [Postman](https://www.getpostman.com/). You can import [the test suite](./server/tests/test-suite.postman_collection.json), add your own requests/tests scripts, then export back into the repo.
+When it makes sense, simply write unit tests directly in the rust source code like normal.
+
+Intergation tests are written in nodejs, using postmam. The best way to write more integration tests is to use [Postman](https://www.getpostman.com/). You can import [the test suite](./server/tests/test-suite.postman_collection.json), add your own requests/tests scripts, then export back into the repo.
 
 ## Contributing
 
