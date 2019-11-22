@@ -25,6 +25,7 @@ pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
         async move {
             Ok::<_, Error>(service_fn(move |request: Request<Body>| {
                 async {
+                    debug!("incoming request to {:?}", request.uri().to_string());
                     match dispatch(request).await {
                         // Ok Results need no server level additions
                         Ok(response) => Ok::<_, Error>(response),
@@ -101,19 +102,5 @@ async fn dispatch(request: Request<Body>) -> Result<Response<Body>, error::Error
             .body(Body::empty())?);
     }
 
-    // currently everything is an LDP resource, but this is where
-    // the different types of resources will be differentiated
-    let mut resource = ldp::Resource::from_request(&request).await?;
-    debug!("ldp resource: {:?}", resource);
-
-    // Get a response builder, then finish building the response
-    let mut response: hyper::http::response::Builder = resource.response_builder();
-    response.header("Allow", "GET,HEAD,OPTIONS");
-    match request.method() {
-        &Method::GET => Ok(response.body(resource.http_body(request.headers().get("Accept").and_then(|header| header.to_str().ok())).await?)?),
-
-        &Method::HEAD => Ok(response.body(Body::empty())?),
-
-        _ => Err(error::Error{ kind: MethodNotAllowed })
-    }
+    ldp::handle(&request).await
 }

@@ -1,92 +1,56 @@
-use crate::http::media_type::MediaType;
-use crate::error::{Error, Kind};
-use hyper::{Body, Request};
-use tokio::fs::File;
-use tokio::prelude::*;
+mod resource;
 
-#[derive(Debug)]
-pub enum ResourceType {
-    RDFSource,
-    NonRDF,
-}
+use crate::error::Error;
+use crate::error::Kind::*;
+use hyper::{Body, Method, Request, Response, StatusCode};
+use log::debug;
+use resource::Resource;
+use tokio::fs;
 
-// An LDP Resource is an HTTP Resource with a bit of metadata added
-#[derive(Debug)]
-pub struct Resource {
-    http_resource: crate::http::Resource,
-    content_type: String,
-    resource_type: ResourceType,
-}
+// handle a request for a resource or container
+pub async fn handle(request: &Request<Body>) -> Result<Response<Body>, Error> {
+    let http_resource = crate::http::Resource::from_request(request).await?;
+    let fs_metadata = fs::metadata(http_resource.file_path).await?;
+    let host = &request.headers()["Host"];
 
-impl Resource {
-    pub async fn from_request(request: &Request<Body>) -> Result<Self, Error> {
-        // get an http resource and turn that `into` our resource
-        Ok(crate::http::Resource::from_request(&request).await?.into())
-    }
-
-    // Turn the resource into an http body
-    pub async fn http_body(&mut self, desired_media_type: Option<&str>) -> Result<Body, Error> {
-        match self.resource_type {
-            ResourceType::RDFSource => {
-                let desired_media_type = desired_media_type.unwrap_or("text/tutle");
-                let our_media_type: MediaType = self.content_type.as_str().into();
-
-                // TODO: load RDF and translate between content types
-                if our_media_type.matches(desired_media_type) {
-                    let mut file = File::open(&self.http_resource.file_path).await?;
-                    let mut contents = vec![];
-                    file.read_to_end(&mut contents).await?;
-                    return Ok(Body::from(contents));
-                }
-                Err(Error {
-                    kind: Kind::NotAcceptable,
-                })
-            }
-
-            ResourceType::NonRDF => {
-                let mut file = File::open(&self.http_resource.file_path).await?;
-                let mut contents = vec![];
-                file.read_to_end(&mut contents).await?;
-                Ok(Body::from(contents))
-            }
+    if fs_metadata.is_dir() {
+        // a directory, treat it as an ldp:Container;
+        debug!("Got a directory. Responding with an ldp:container)");
+        if !request.uri().path().ends_with("/") {
+            // redirect to the same path with / appended
+            debug!("Adding '/' to end of container url");
+            return Ok(Response::builder()
+                .status(StatusCode::MOVED_PERMANENTLY)
+                .header("Location", format!("{}/",  request.uri()))
+                .body(Body::empty())?
+            );
         }
     }
 
-    // Turn the resource into an http response builder
-    pub fn response_builder(&self) -> http::response::Builder {
-        let link = match self.resource_type {
-            ResourceType::RDFSource => "<http://www.w3.org/ns/ldp#RDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"",
 
-            ResourceType::NonRDF => "<http://www.w3.org/ns/ldp#NonRDFSource>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\""
-        };
+    //  not a directory, must be a file. Treat it as an ldp:Resource
+    let mut resource = Resource::from_request(request).await?;
+    debug!("ldp resource: {:?}", resource);
 
-        let mut builder: hyper::http::response::Builder = self.http_resource.response_builder();
+    // Get a response builder, then finish building the response
+    let mut response: hyper::http::response::Builder = resource.response_builder();
+    response.header("Allow", "GET,HEAD,OPTIONS");
+    match request.method() {
+        &Method::GET => Ok(response.body(
+            resource
+                .http_body(
+                    request
+                        .headers()
+                        .get("Accept")
+                        .and_then(|header| header.to_str().ok()),
+                )
+                .await?,
+        )?),
 
-        // Add the LDP specific metadata
-        builder
-            .header("Content-Type", &self.content_type)
-            .header("Link", link);
+        &Method::HEAD => Ok(response.body(Body::empty())?),
 
-        builder
-    }
-}
-
-impl From<crate::http::Resource> for Resource {
-    // Turn an http resource into an ldp resource
-    fn from(resource: crate::http::Resource) -> Self {
-        // Derive content types from the file extension :\?
-        // this will change when we support Content Negotiation
-        let extension = resource.file_path.extension().unwrap_or_default();
-        let (resource_type, content_type) = match extension.to_str() {
-            Some("ttl") => (ResourceType::RDFSource, "text/turtle".to_owned()),
-            Some("jsonld") => (ResourceType::RDFSource, "application/ld+json".to_owned()),
-            _ => (ResourceType::NonRDF, "application/octet-stream".to_owned()),
-        };
-
-        Self {
-            http_resource: resource,
-            resource_type,
-            content_type,
-        }
+        _ => Err(Error {
+            kind: MethodNotAllowed,
+        }),
     }
 }
