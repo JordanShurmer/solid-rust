@@ -1,8 +1,9 @@
+mod container;
 mod resource;
 
 use crate::error::Error;
 use crate::error::Kind::*;
-use hyper::{Body, Method, Request, Response, StatusCode};
+use hyper::{Body, Method, Request, Response};
 use log::debug;
 use resource::Resource;
 use tokio::fs;
@@ -11,20 +12,11 @@ use tokio::fs;
 pub async fn handle(request: &Request<Body>) -> Result<Response<Body>, Error> {
     let http_resource = crate::http::Resource::from_request(request).await?;
     let fs_metadata = fs::metadata(http_resource.file_path).await?;
-    let host = &request.headers()["Host"];
 
     if fs_metadata.is_dir() {
         // a directory, treat it as an ldp:Container;
         debug!("Got a directory. Responding with an ldp:container)");
-        if !request.uri().path().ends_with("/") {
-            // redirect to the same path with / appended
-            debug!("Adding '/' to end of container url");
-            return Ok(Response::builder()
-                .status(StatusCode::MOVED_PERMANENTLY)
-                .header("Location", format!("{}/",  request.uri()))
-                .body(Body::empty())?
-            );
-        }
+        return container::handle(request).await;
     }
 
 

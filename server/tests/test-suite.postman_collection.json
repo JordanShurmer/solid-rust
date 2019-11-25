@@ -70,7 +70,7 @@
 											"pm.test(\"Status code is 200\", function () {",
 											"    pm.response.to.have.status(200);",
 											"});",
-											"pm.test(\"Content-Type is text/turtle\", function () {",
+											"pm.test(\"Content-Type is application/ld+json\", function () {",
 											"    pm.response.to.have.header(\"Content-Type\", 'application/ld+json');",
 											"});",
 											"pm.test(\"Link header advertises RDFSource\", function () {",
@@ -251,6 +251,45 @@
 									]
 								},
 								"description": "Ensure requests to containers directly redirect to container/"
+							},
+							"response": []
+						},
+						{
+							"name": "Container Headers",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cfc935bd-8315-4675-a0a4-dbe1aa1c1975",
+										"exec": [
+											"pm.test(\"Content-Type is text/turtle\", function () {",
+											"    pm.response.to.have.header(\"Content-Type\", 'text/turtle');",
+											"});",
+											"pm.test(\"Link header advertises RDFSource\", function () {",
+											"    pm.response.to.have.header(\"Link\", '<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"');",
+											"})",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/tests/static/container/",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"container",
+										""
+									]
+								},
+								"description": "A request to check the ldp headers for a container"
 							},
 							"response": []
 						}
