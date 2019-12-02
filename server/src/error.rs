@@ -1,8 +1,11 @@
 use core::fmt;
 
+type Cause = Box<dyn  std::error::Error + Send + Sync>;
+
 #[derive(Debug)]
 pub struct Error {
-    pub kind: Kind
+    pub kind: Kind,
+    pub cause: Option<Cause>,
 }
 
 #[derive(Debug)]
@@ -24,16 +27,25 @@ impl fmt::Display for Kind {
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
         match e.kind() {
-            std::io::ErrorKind::NotFound => Error{ kind: Kind::NotFound },
+            std::io::ErrorKind::NotFound => Error {
+                kind: Kind::NotFound,
+                cause: Some(e.into()),
+            },
 
-            _ => Error{ kind: Kind::Unexpected },
+            _ => Error {
+                kind: Kind::Unexpected,
+                cause: Some(e.into()),
+            },
         }
     }
 }
 
 impl From<http::Error> for Error {
-    fn from(_: http::Error) -> Self {
-        Error{ kind: Kind::Unexpected}
+    fn from(e: http::Error) -> Self {
+        Error {
+            kind: Kind::Unexpected,
+            cause: Some(e.into())
+        }
     }
 }
 
@@ -43,6 +55,4 @@ impl fmt::Display for Error {
     }
 }
 
-impl std::error::Error for Error  {
-
-}
+impl std::error::Error for Error {}

@@ -32,7 +32,7 @@ pub async fn serve(port: u16) -> Result<(), Box<dyn std::error::Error>> {
 
                         // Err Results are handled here
                         Err(e) => {
-                            debug!("Error reading file, {:?}", e);
+                            debug!("Error responding to request: {:?}", e);
                             match e.kind {
                                 // 404
                                 NotFound => {

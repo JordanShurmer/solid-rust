@@ -107,6 +107,47 @@
 								"description": "A simple GET request for a .ttl resource and text/turtle content-type"
 							},
 							"response": []
+						},
+						{
+							"name": "Remove '/' with 301",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "715d0059-2645-409c-9805-f8a5b0c92d08",
+										"exec": [
+											"pm.test(\"Containers redirect to container/\", function () {",
+											"    pm.response.to.have.status(301);",
+											"    pm.response.to.have.header(\"Location\");",
+											"    pm.expect(pm.response.headers.get(\"Location\")).to.equal(`${pm.variables.get('root-path')}/tests/static/profile.ttl`);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"followRedirects": false
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/tests/static/profile.ttl/",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"tests",
+										"static",
+										"profile.ttl",
+										""
+									]
+								},
+								"description": "If requesting a Resource with the url ending in '/' then redirect the client to the same url with the trailing slash removed"
+							},
+							"response": []
 						}
 					],
 					"description": "Requests for RDFSources",
@@ -128,7 +169,9 @@
 								"type": "text/javascript",
 								"exec": [
 									"pm.test(\"Has correct Allow header\", function () {",
-									"    pm.response.to.have.header('Allow', 'GET,HEAD,OPTIONS')",
+									"    if (pm.response.code !== 301) {",
+									"      pm.response.to.have.header('Allow', 'GET,HEAD,OPTIONS')",
+									"    }",
 									"})"
 								]
 							}

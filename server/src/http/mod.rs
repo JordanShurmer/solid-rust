@@ -1,5 +1,5 @@
-pub mod media_type;
 pub mod conditional;
+pub mod media_type;
 
 use crate::error::Error;
 use crate::error::Kind::*;
@@ -21,7 +21,7 @@ pub struct Resource {
 impl Resource {
     // create a resource from an http request
     pub async fn from_request(request: &Request<Body>) -> Result<Self, Error> {
-        let file_path = PathBuf::from(request.uri().path().trim_start_matches('/'));
+        let file_path = PathBuf::from(request.uri().path().trim_matches('/'));
         let modified_time = metadata(file_path.clone()).await?.modified()?;
         let last_modified = httpdate::fmt_http_date(modified_time);
 
@@ -40,6 +40,7 @@ impl Resource {
                 if !does_match {
                     return Err(Error {
                         kind: PreconditionFailed,
+                        cause: None,
                     });
                 }
             }
@@ -50,6 +51,7 @@ impl Resource {
                     if !fresh {
                         return Err(Error {
                             kind: PreconditionFailed,
+                            cause: None,
                         });
                     }
                 }
@@ -60,10 +62,14 @@ impl Resource {
             Some(none_match) => {
                 if !none_match {
                     if get_or_head {
-                        return Err(Error { kind: NotModified });
+                        return Err(Error {
+                            kind: NotModified,
+                            cause: None,
+                        });
                     } else {
                         return Err(Error {
                             kind: PreconditionFailed,
+                            cause: None,
                         });
                     }
                 }
@@ -76,6 +82,7 @@ impl Resource {
                         if !newer {
                             return Err(Error {
                                 kind: NotModified,
+                                cause: None,
                             });
                         }
                     }

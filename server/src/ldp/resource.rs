@@ -1,8 +1,47 @@
-use crate::http::media_type::MediaType;
+use crate::error::Kind::*;
 use crate::error::{Error, Kind};
-use hyper::{Body, Request};
+use crate::http::media_type::MediaType;
+use hyper::{Body, Method, Request, Response, StatusCode};
+use log::debug;
 use tokio::fs::File;
 use tokio::prelude::*;
+
+pub async fn handle(request: &Request<Body>) -> Result<Response<Body>, Error> {
+    if request.uri().path().ends_with("/") {
+        // redirect to the same path with / appended
+        debug!("Removing '/' from end of resource url");
+        return Ok(hyper::Response::builder()
+            .status(StatusCode::MOVED_PERMANENTLY)
+            .header("Location", request.uri().to_string().trim_end_matches('/'))
+            .body(Body::empty())?);
+    }
+
+    let mut resource = Resource::from_request(request).await?;
+    debug!("ldp resource: {:?}", resource);
+
+    // Get a response builder, then finish building the response
+    let mut response: hyper::http::response::Builder = resource.response_builder();
+    response.header("Allow", "GET,HEAD,OPTIONS");
+    match request.method() {
+        &Method::GET => Ok(response.body(
+            resource
+                .http_body(
+                    request
+                        .headers()
+                        .get("Accept")
+                        .and_then(|header| header.to_str().ok()),
+                )
+                .await?,
+        )?),
+
+        &Method::HEAD => Ok(response.body(Body::empty())?),
+
+        _ => Err(Error {
+            kind: MethodNotAllowed,
+            cause: None,
+        }),
+    }
+}
 
 #[derive(Debug)]
 pub enum ResourceType {
@@ -40,6 +79,7 @@ impl Resource {
                 }
                 Err(Error {
                     kind: Kind::NotAcceptable,
+                    cause: None,
                 })
             }
 
