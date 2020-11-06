@@ -2,6 +2,10 @@ use crate::error::Error;
 use crate::http::Resource;
 use hyper::{Body, Request, Response, StatusCode};
 use log::debug;
+use rio_api::model::NamedNode;
+use rio_api::model::Triple;
+use rio_api::formatter::TriplesFormatter;
+use rio_turtle::TurtleFormatter;
 
 pub async fn handle(request: &Request<Body>) -> Result<Response<Body>, Error> {
     if !request.uri().path().ends_with("/") {
@@ -20,7 +24,7 @@ pub async fn handle(request: &Request<Body>) -> Result<Response<Body>, Error> {
 
     let mut builder = container.response_builder();
 
-    Ok(builder.body(Body::empty())?)
+    Ok(builder.body(container.into())?)
 
 }
 
@@ -39,5 +43,25 @@ impl Container {
             .header("Link", "<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\", <http://www.w3.org/ns/ldp#Resource>; rel=\"type\"");
 
         builder
+    }
+}
+
+impl From<Container> for Body {
+
+    //todo: handle errors instead of unwrap
+    fn from(container: Container) -> Self {
+        let mut formatter = TurtleFormatter::new(Vec::default());
+        formatter.format(&Triple{
+            subject: NamedNode { iri: "." }.into(),
+            predicate: NamedNode { iri: "http://www.w3.org/ns/ldp#contains" },
+            object: NamedNode { iri: "./something" }.into(),
+        }).unwrap();
+        formatter.format(&Triple{
+            subject: NamedNode { iri: "." }.into(),
+            predicate: NamedNode { iri: "http://www.w3.org/ns/ldp#contains" },
+            object: NamedNode { iri: "./something-else" }.into(),
+        }).unwrap();
+
+        return Body::from(formatter.finish().unwrap());
     }
 }

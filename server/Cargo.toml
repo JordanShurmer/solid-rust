@@ -7,10 +7,13 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-http = "0.1"
+http = "0.2"
 httpdate = "0.3"
-hyper = "0.13.0-alpha"
+hyper = "0.13"
 futures-preview = "0.3.0-alpha"
 log = "0.4"
-pretty_env_logger = "0.3"
-tokio = "0.2.0-alpha"
+pretty_env_logger = "0.4"
+rio_api = "0.5"
+rio_turtle = "0.5"
+rio_xml = "0.5"
+tokio = { version = "0.3", features = ["fs", "test-util"] }

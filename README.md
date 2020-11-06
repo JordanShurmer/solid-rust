@@ -31,15 +31,16 @@ See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milest
 
 There doesn't seem to be any already existing LDP servers in Rust, so this is from scratch.
 
-- [ ] Read Resources (GET, HEAD, OPTIONS)
+- [x] Read Resources (GET, HEAD, OPTIONS)
   - [ ] Content Negotiation (`.ttl->application/ld+json` et al.) (`Accept` header)
     - [x] text/turtle
     - [ ] **application/ld+json**
 - [ ] Write Resources
-  - [ ] POST directly
-  - [ ] POST through container
+  - [ ] PUT to create
+  - [ ] PUT to update
+  - [ ] POST to create through container
 - [ ] Read Containers
-- [ ] Write Containers
+- [ ] Write Containers?
 
 ## Architecture
 

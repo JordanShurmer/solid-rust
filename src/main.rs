@@ -14,7 +14,7 @@ struct CliOpts {
 // ENTRY POINT
 // *** *** ***
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() /*-> Result<(), Box<dyn std::error::Error>>*/ {
     pretty_env_logger::init();
 
     let cli_opts = CliOpts::from_args();

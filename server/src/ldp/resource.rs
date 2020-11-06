@@ -3,7 +3,7 @@ use crate::error::{Error, Kind};
 use crate::http::media_type::MediaType;
 use hyper::{Body, Method, Request, Response, StatusCode};
 use log::debug;
-use tokio::fs::File;
+use tokio::fs;
 use tokio::prelude::*;
 
 pub async fn handle(request: &Request<Body>) -> Result<Response<Body>, Error> {
@@ -72,9 +72,7 @@ impl Resource {
 
                 // TODO: load RDF and translate between content types
                 if our_media_type.matches(desired_media_type) {
-                    let mut file = File::open(&self.http_resource.file_path).await?;
-                    let mut contents = vec![];
-                    file.read_to_end(&mut contents).await?;
+                    let contents = fs::read_to_string(&self.http_resource.file_path).await?;
                     return Ok(Body::from(contents));
                 }
                 Err(Error {
@@ -84,9 +82,7 @@ impl Resource {
             }
 
             ResourceType::NonRDF => {
-                let mut file = File::open(&self.http_resource.file_path).await?;
-                let mut contents = vec![];
-                file.read_to_end(&mut contents).await?;
+                let contents = fs::read_to_string(&self.http_resource.file_path).await?;
                 Ok(Body::from(contents))
             }
         }
