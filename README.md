@@ -15,21 +15,29 @@ Work (barely) In Progress. Not useable at all.
 
 See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milestones](https://github.com/JordanShurmer/solid-rust/milestones) to get an idea of the on going work.
 
-- [ ] LDP support
+- [ ] HTTP
+- [ ] LDP
 - [ ] WAC
 - [ ] WebId
 - [ ] ...
 
-### HTTTP Status
+### HTTP Related Conformance
 
-- [x] Read http resources (GET, HEAD, OPTIONS)
-- [ ] Write http resources (POST, PUT?)
-- [x] Conditional Requests (Etag, 412, 304 etc)
-  - [ ] Range/If-Range (optional)
+- [x] MUST [Be a Serve](https://solidproject.org/TR/protocol#http)
+- [ ] MUST support [Conditional Requests (Etag, 412, 304 etc)](https://solidproject.org/TR/protocol#http)
+- [ ] SHOULD provide [Server Caching](https://solidproject.org/TR/protocol#http)
+- [ ] MAY support [Range/If-Range (optional)](https://solidproject.org/TR/protocol#http)
+- [ ] MUST support [http authentication standards](https://solidproject.org/TR/protocol#http) (i.e. 401 or 404 for invalid creds)
+- [ ] MUST [reject `PUT`, `POST`, `PATCH` with 400 when no `Content-Type` header](https://solidproject.org/TR/protocol#http)
 
-### LDP Status
+### LDP Related Conformance
 
 There doesn't seem to be any already existing LDP servers in Rust, so this is from scratch.
+
+
+- [ ] MUST [advertise Storage roots with pim:Storage header](https://solidproject.org/TR/protocol#storage)
+
+---
 
 - [x] Read Resources (GET, HEAD, OPTIONS)
   - [ ] Content Negotiation (`.ttl->application/ld+json` et al.) (`Accept` header)
@@ -41,6 +49,11 @@ There doesn't seem to be any already existing LDP servers in Rust, so this is fr
   - [ ] POST to create through container
 - [ ] Read Containers
 - [ ] Write Containers?
+
+#### Metadata
+
+- [ ] [pim:Storage header](https://solidproject.org/TR/protocol#storage)
+- [ ] 
 
 ## Architecture
 
@@ -109,7 +122,7 @@ Contributions are welcome!
 
 - [Solid landing page][SoLiD]
 - [The Node Solid Server][nss]
-- Inrupt's new [pod-server]
+- Inrupt's (deprecated?) [pod-server]
 - [tokio docs](https://docs.rs/tokio)
 - [hyper docs](https://docs.rs/hyper)
 
@@ -119,7 +132,7 @@ Contributions are welcome!
 - [solid spec]
 
 [ldp]: https://www.w3.org/TR/ldp/
-[solid spec]: https://github.com/solid/specification
+[solid spec]: https://solidproject.org/TR/protocol#storage
 [SoLid]: https://solid.github.io/
 [pod-server]: https://github.com/inrupt/pod-server
 [nss]: https://github.com/solid/node-solid-server
