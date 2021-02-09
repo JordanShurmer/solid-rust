@@ -11,7 +11,7 @@ A [SoLiD] server implemented in rust.
 
 ## Status
 
-Work (barely) In Progress. Not useable at all.
+Work (barely) In Progress. Not usable at all.
 
 See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milestones](https://github.com/JordanShurmer/solid-rust/milestones) to get an idea of the on going work.
 
@@ -23,22 +23,41 @@ See the [issues](https://github.com/JordanShurmer/solid-rust/issues) and [Milest
 
 ### HTTP Related Conformance
 
-- [x] MUST [Be a Serve](https://solidproject.org/TR/protocol#http)
+- [x] MUST [Be a Server](https://solidproject.org/TR/protocol#http)
+- [ ] MUST [support GET, HEAD, OPTIONS on resources](https://solidproject.org/TR/protocol#reading-resources)
+- [ ] MUST [indicate methods in Allow header for authorized requests](https://solidproject.org/TR/protocol#reading-resources)
+- [ ] MUST [indicate supported media-types with Accept-Put, Accept-Post, Accept-Patch](https://solidproject.org/TR/protocol#reading-resources)
+  - [ ] MAY indicate those in OPTIONS requests
 - [ ] MUST support [Conditional Requests (Etag, 412, 304 etc)](https://solidproject.org/TR/protocol#http)
 - [ ] SHOULD provide [Server Caching](https://solidproject.org/TR/protocol#http)
 - [ ] MAY support [Range/If-Range (optional)](https://solidproject.org/TR/protocol#http)
 - [ ] MUST support [http authentication standards](https://solidproject.org/TR/protocol#http) (i.e. 401 or 404 for invalid creds)
 - [ ] MUST [reject `PUT`, `POST`, `PATCH` with 400 when no `Content-Type` header](https://solidproject.org/TR/protocol#http)
+- [ ] MUST [405 for methods not supported on the target resource](https://solidproject.org/TR/protocol#reading-writing-resources)
+- [ ] MUST [respond 404 when POSTing to a non-existing url](https://solidproject.org/TR/protocol#writing-resources)
+- [ ] MAY [use the Slug header for resource naming handling POST](https://solidproject.org/TR/protocol#resource-type-heuristics)
+- [ ] MUST [allow acl/description resources to be modified with PUT and PATCH](https://solidproject.org/TR/protocol#writing-resources)
+
+
 
 ### LDP Related Conformance
 
 There doesn't seem to be any already existing LDP servers in Rust, so this is from scratch.
 
 
-- [ ] MUST [advertise Storage roots with pim:Storage header](https://solidproject.org/TR/protocol#storage)
-
----
-
+- [ ] MUST [support LDP containers](https://solidproject.org/TR/protocol#resource-containment)
+- [ ] MUST [create intermediate containers when creating](https://solidproject.org/TR/protocol#writing-resources)
+- [ ] MUST [allow POSTing to a container to create](https://solidproject.org/TR/protocol#writing-resources)
+  - [ ] MUST [create a container resource when Link Header rel=type ldp:Container header is present in the POST](https://solidproject.org/TR/protocol#writing-resources)
+  - [ ] MUST [create the resource/container directly under the container in the url hierarchy](https://solidproject.org/TR/protocol#writing-resources)
+- [ ] MUST [403 when trying to POST with a slug indicating the auxiliary resource](https://solidproject.org/TR/protocol#writing-resources)
+- [ ] MUST [409 when someone tries to PUT or PATCH container's containment directly](https://solidproject.org/TR/protocol#writing-resources)
+- [ ] MUST [405 a request to delete the storage root or its acl](https://solidproject.org/TR/protocol#deleting-resources)
+- [ ] MUST [remove the reference of a deleted resources from it's container too](https://solidproject.org/TR/protocol#deleting-resources)
+- [ ] MUST [delete auxiliary resources when deleting a resource](https://solidproject.org/TR/protocol#deleting-resources)
+- [ ] MUST [support DELETE of empty containers](https://solidproject.org/TR/protocol#deleting-resources)
+- [ ] MUST [409 a DELETE request of a non-empty container](https://solidproject.org/TR/protocol#deleting-resources)
+  
 - [x] Read Resources (GET, HEAD, OPTIONS)
   - [ ] Content Negotiation (`.ttl->application/ld+json` et al.) (`Accept` header)
     - [x] text/turtle
@@ -50,10 +69,24 @@ There doesn't seem to be any already existing LDP servers in Rust, so this is fr
 - [ ] Read Containers
 - [ ] Write Containers?
 
-#### Metadata
+### Miscellaneous Conformance
 
-- [ ] [pim:Storage header](https://solidproject.org/TR/protocol#storage)
-- [ ] 
+- [ ] MUST [advertise Storage roots with pim:Storage header](https://solidproject.org/TR/protocol#storage)
+- [ ] MUST [provide an acl doc on the storage roo](https://solidproject.org/TR/protocol#storage)
+- [ ] MUST [have an acl:Control privileged role on that acl?](https://solidproject.org/TR/protocol#storage)
+- [ ] MUST [have the same origin for subject and its auxiliary resource](https://solidproject.org/TR/protocol#auxiliary-resources)
+- [ ] MUST NOT [associate multiple description resources with a resource](https://solidproject.org/TR/protocol#auxiliary-resources)
+- [ ] MUST [require acl:Write to change a description resource](https://solidproject.org/TR/protocol#auxiliary-resources)
+- [ ] MUST [require acl:Read to view a description resource](https://solidproject.org/TR/protocol#auxiliary-resources)
+
+
+### Web Access Control
+
+- [ ] MUST honor the acl roles
+- [ ] MUST NOT [associate multiple acl docs with a resource](https://solidproject.org/TR/protocol#auxiliary-resources)
+- [ ] MUST [require `acl:Control` privilege to access acl doc](https://solidproject.org/TR/protocol#auxiliary-resources)
+- [ ] SHOULD [validate acl doc changes (e.g. shape validation)](https://solidproject.org/TR/protocol#auxiliary-resources)
+
 
 ## Architecture
 
