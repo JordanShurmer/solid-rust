@@ -16,4 +16,4 @@ pretty_env_logger = "0.4"
 rio_api = "0.5"
 rio_turtle = "0.5"
 rio_xml = "0.5"
-tokio = { version = "0.3", features = ["fs", "test-util"] }
+tokio = { version = "1.8", features = ["fs", "test-util"] }
